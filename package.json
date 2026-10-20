@@ -1,0 +1,15 @@
+{
+  "name": "pixel-dither",
+  "version": "1.0.0",
+  "description": "Turn any image into dithered pixel art, in the browser. No dependencies, works offline.",
+  "type": "module",
+  "main": "src/dither.js",
+  "exports": "./src/dither.js",
+  "license": "MIT",
+  "author": "Roshan Prasad (https://roshanprasad.design)",
+  "scripts": {
+    "start": "python3 -m http.server 4321",
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": ["pixel-art", "dither", "bayer", "palette", "image"]
+}

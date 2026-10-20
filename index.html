@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Pixel Dither</title>
+    <meta
+      name="description"
+      content="Turn any image into dithered pixel art: its own palette, Bayer patterns, crisp pixels. Free, open source, and nothing leaves your device."
+    />
+    <meta name="theme-color" content="#0b0b0d" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <link rel="stylesheet" href="src/style.css" />
+    <script type="module" src="src/app.js"></script>
+  </head>
+  <body>
+    <a class="skip" href="#controls">Skip to controls</a>
+    <header class="bar">
+      <h1 class="brand"><span aria-hidden="true" class="mark"></span>Pixel Dither</h1>
+      <nav class="bar-links">
+        <button type="button" id="install" class="link" hidden>Install</button>
+        <a class="link" href="https://github.com/roshanprasadt/pixel-dither">Source</a>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <section class="stage" id="stage" aria-label="Picture">
+        <canvas id="output" role="img" aria-label="No image yet"></canvas>
+        <canvas id="original" aria-hidden="true" hidden></canvas>
+        <div class="empty" id="empty">
+          <p class="empty-title">Drop an image here</p>
+          <p class="empty-note">or paste one, or choose a file. It never leaves your device.</p>
+        </div>
+        <p class="badge" id="badge" hidden>Original</p>
+      </section>
+
+      <aside class="panel" id="controls" aria-label="Controls">
+        <div class="row">
+          <label class="button primary">
+            Choose image
+            <input type="file" id="file" accept="image/*" class="sr-only" />
+          </label>
+          <button type="button" class="button" id="sample">Try a sample</button>
+        </div>
+
+        <div class="palette" id="swatches" aria-hidden="true"></div>
+
+        <div class="field">
+          <label for="cells">Pixel size <output id="cells-out"></output></label>
+          <input type="range" id="cells" min="24" max="240" step="4" value="96" />
+        </div>
+
+        <div class="field">
+          <label for="mode">Palette</label>
+          <select id="mode">
+            <option value="auto">From the image</option>
+            <option value="1-bit">1-bit</option>
+            <option value="Game Boy">Game Boy</option>
+            <option value="PICO-8">PICO-8</option>
+            <option value="Dusk">Dusk</option>
+          </select>
+        </div>
+
+        <div class="field" id="colours-field">
+          <label for="colours">Colours <output id="colours-out"></output></label>
+          <input type="range" id="colours" min="2" max="24" step="1" value="10" />
+        </div>
+
+        <div class="field">
+          <label for="strength">Dither <output id="strength-out"></output></label>
+          <input type="range" id="strength" min="0" max="100" step="5" value="60" />
+        </div>
+
+        <div class="field">
+          <label for="matrix">Pattern</label>
+          <select id="matrix">
+            <option value="8">Bayer 8×8 (fine)</option>
+            <option value="4">Bayer 4×4 (chunky)</option>
+            <option value="2">Bayer 2×2 (checker)</option>
+            <option value="0">None (flat bands)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="scale">Export size</label>
+          <select id="scale">
+            <option value="auto">About 1600px</option>
+            <option value="1">1× (one pixel per cell)</option>
+            <option value="4">4×</option>
+            <option value="8">8×</option>
+            <option value="16">16×</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button type="button" class="button primary" id="download" disabled>Download PNG</button>
+          <button type="button" class="button" id="copy" disabled>Copy</button>
+          <button type="button" class="button" id="compare" disabled aria-pressed="false">Compare</button>
+        </div>
+        <p class="status" id="status" role="status" aria-live="polite"></p>
+
+        <p class="foot">
+          Made by <a href="https://roshanprasad.design">Roshan Prasad</a>. Open source,
+          <a href="https://github.com/roshanprasadt/pixel-dither/blob/main/LICENSE">MIT</a>.
+        </p>
+      </aside>
+    </main>
+  </body>
+</html>

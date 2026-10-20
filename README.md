@@ -1,0 +1,68 @@
+# Pixel Dither
+
+Turn any image into dithered pixel art: chunky square pixels, a small palette taken from the image itself, and ordered (Bayer) dithering that turns smooth gradients into checkerboards and dot fields.
+
+- **Private.** Everything happens in your browser. Images are never uploaded.
+- **Works offline**, and installs as an app on desktop and phone.
+- **No dependencies, no build step.** Plain HTML, CSS and JavaScript modules.
+
+## Use it
+
+Open the app, then drop, paste or choose an image. Adjust:
+
+| Control | What it does |
+| --- | --- |
+| Pixel size | How many pixels across. Fewer means bigger, chunkier pixels. |
+| Palette | The image's own colours, or a preset: 1-bit, Game Boy, PICO-8, Dusk. |
+| Colours | How many colours to find in the image (own palette only). |
+| Dither | How strongly gradients are broken into pattern. 0 gives flat bands. |
+| Pattern | Bayer 8×8 (fine), 4×4 (chunky), 2×2 (checker) or none. |
+| Export size | 1× is one pixel per cell; larger sizes stay crisp. |
+
+Then **Download PNG**, **Copy**, or **Compare** with the original.
+
+## How it works
+
+1. **Shrink.** The image is scaled down to the grid, halving in steps so detail is averaged rather than skipped.
+2. **Palette.** K-means clustering finds the colours that best represent the image. It is seeded from a fixed generator, so the same image and settings always give the same result.
+3. **Dither.** Each pixel is nudged up or down by its place in a Bayer threshold matrix, then snapped to the nearest palette colour. The nudge is scaled to the palette's own spacing, so the setting feels the same with 4 colours or 16.
+
+Ordered dithering is chosen over error diffusion (Floyd–Steinberg) on purpose: it produces regular, repeating pattern, which is the look of classic pixel art. Error diffusion reads as noise.
+
+The result is drawn at the grid's real size and scaled up with `image-rendering: pixelated`, so every pixel is a sharp square at any zoom.
+
+## Run it locally
+
+Any static file server works. With Python:
+
+```bash
+npm start
+```
+
+Then open http://localhost:4321. (Opening `index.html` straight from disk also works, without offline support.)
+
+## Use the code as a library
+
+`src/dither.js` has no DOM in it, so it runs in browsers, workers and Node:
+
+```js
+import { findPalette, dither, PRESETS, hexToRgb } from "pixel-dither";
+
+// pixels: { data: Uint8ClampedArray (RGBA), width, height }, already shrunk
+const palette = findPalette(pixels, 10);            // or PRESETS["Game Boy"].map(hexToRgb)
+dither(pixels, palette, { strength: 0.6, matrix: 8 }); // in place
+```
+
+## Tests
+
+```bash
+npm test
+```
+
+## Deploy
+
+It is a static site: deploy the folder as is to Vercel, Netlify, GitHub Pages or any host. When you change a file, nothing else is needed: the offline cache always fetches fresh files first. Bump `VERSION` in `sw.js` only when files are added or removed.
+
+## Licence
+
+[MIT](LICENSE) © 2026 Roshan Prasad. Made by [Roshan Prasad](https://roshanprasad.design).
