@@ -4,13 +4,18 @@
  * cache), so an update is never stuck behind an old copy; offline, the
  * cache answers. Bump VERSION when the file list changes.
  */
-const VERSION = "pixel-dither-v1";
+const VERSION = "pixel-dither-v9";
 const FILES = [
   "./",
   "index.html",
   "src/app.js",
   "src/dither.js",
   "src/style.css",
+  "src/samples.js",
+  "samples/jellyfish.jpg",
+  "samples/bust.jpg",
+  "samples/chrome.jpg",
+  "samples/dunes.jpg",
   "manifest.webmanifest",
   "icons/icon.svg",
   "icons/icon-192.png",

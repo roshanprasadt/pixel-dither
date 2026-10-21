@@ -9,6 +9,18 @@
       content="Turn any image into dithered pixel art: its own palette, Bayer patterns, crisp pixels. Free, open source, and nothing leaves your device."
     />
     <meta name="theme-color" content="#0b0b0d" />
+    <link rel="canonical" href="https://pixel-dither.roshanprasad.design/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Pixel Dither: any image to pixel art" />
+    <meta
+      property="og:description"
+      content="Turn any image into dithered pixel art in your browser. Private, offline, open source."
+    />
+    <meta property="og:url" content="https://pixel-dither.roshanprasad.design/" />
+    <meta property="og:image" content="https://pixel-dither.roshanprasad.design/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -18,10 +30,14 @@
   <body>
     <a class="skip" href="#controls">Skip to controls</a>
     <header class="bar">
-      <h1 class="brand"><span aria-hidden="true" class="mark"></span>Pixel Dither</h1>
+      <div class="bar-start">
+        <h1 class="brand"><span aria-hidden="true" class="mark"></span>Pixel Dither</h1>
+        <p class="tagline">Turn any image into dithered pixel art</p>
+      </div>
       <nav class="bar-links">
+        <a class="link" href="#about">How it works</a>
         <button type="button" id="install" class="link" hidden>Install</button>
-        <a class="link" href="https://github.com/roshanprasadt/pixel-dither">Source</a>
+        <a class="link with-icon" href="https://github.com/roshanprasadt/pixel-dither" target="_blank" rel="noopener noreferrer"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg><span class="source-text">Source</span><span class="sr-only"> (opens in a new tab)</span></a>
       </nav>
     </header>
 
@@ -33,79 +49,175 @@
           <p class="empty-title">Drop an image here</p>
           <p class="empty-note">or paste one, or choose a file. It never leaves your device.</p>
         </div>
-        <p class="badge" id="badge" hidden>Original</p>
+        <div class="stage-bar">
+        <div class="chip" id="chip" hidden>
+          <!-- The four samples, to switch between; built from SAMPLES. -->
+          <div class="picker" id="picker" role="group" aria-label="Samples"></div>
+          <span class="chip-text">Drop your own, or</span>
+          <label class="chip-action">
+            Choose image
+            <input type="file" id="chip-file" accept="image/*" class="sr-only" />
+          </label>
+        </div>
+        <!-- Original or pixel art: two choices, one pressed. -->
+        <div class="segment" role="group" aria-label="View">
+          <button type="button" data-view="original" aria-pressed="false" disabled>Original</button>
+          <button type="button" data-view="pixel" aria-pressed="true" disabled>Pixel</button>
+        </div>
+        </div>
       </section>
 
       <aside class="panel" id="controls" aria-label="Controls">
-        <div class="row">
-          <label class="button primary">
-            Choose image
-            <input type="file" id="file" accept="image/*" class="sr-only" />
-          </label>
-          <button type="button" class="button" id="sample">Try a sample</button>
-        </div>
+        <!-- Four groups, in the order of the job: pick a picture, shape its
+             pixels, set its colours, take it away; a hairline between each. -->
+        <section class="group" aria-label="Image">
+          <div class="row">
+            <label class="button primary">
+              Choose image
+              <input type="file" id="file" accept="image/*" class="sr-only" />
+            </label>
+            <button type="button" class="button" id="sample">Try a sample</button>
+          </div>
+        </section>
 
-        <div class="palette" id="swatches" aria-hidden="true"></div>
+        <section class="group" aria-label="Pixels">
+          <div class="field">
+            <label for="cells">Pixel size <output id="cells-out"></output></label>
+            <input type="range" id="cells" min="24" max="240" step="4" value="144" />
+          </div>
+          <div class="field">
+            <label for="strength">Dither <output id="strength-out"></output></label>
+            <input type="range" id="strength" min="0" max="100" step="5" value="60" />
+          </div>
+          <div class="field">
+            <label for="matrix">Pattern</label>
+            <select id="matrix">
+              <option value="8">Bayer 8×8 (fine)</option>
+              <option value="4">Bayer 4×4 (chunky)</option>
+              <option value="2">Bayer 2×2 (checker)</option>
+              <option value="0">None (flat bands)</option>
+            </select>
+          </div>
+        </section>
 
-        <div class="field">
-          <label for="cells">Pixel size <output id="cells-out"></output></label>
-          <input type="range" id="cells" min="24" max="240" step="4" value="96" />
-        </div>
+        <section class="group" aria-label="Colour">
+          <div class="field">
+            <label for="mode">Palette</label>
+            <select id="mode">
+              <option value="auto">From the image</option>
+              <option value="1-bit">1-bit</option>
+              <option value="Game Boy">Game Boy</option>
+              <option value="PICO-8">PICO-8</option>
+              <option value="Dusk">Dusk</option>
+            </select>
+          </div>
+          <div class="field" id="colours-field">
+            <label for="colours">Colours <output id="colours-out"></output></label>
+            <input type="range" id="colours" min="2" max="24" step="1" value="10" />
+          </div>
+          <!-- The palette in use, right under the control that sets it. -->
+          <div class="palette" id="swatches" aria-hidden="true"></div>
+        </section>
 
-        <div class="field">
-          <label for="mode">Palette</label>
-          <select id="mode">
-            <option value="auto">From the image</option>
-            <option value="1-bit">1-bit</option>
-            <option value="Game Boy">Game Boy</option>
-            <option value="PICO-8">PICO-8</option>
-            <option value="Dusk">Dusk</option>
-          </select>
-        </div>
+        <section class="group" aria-label="Export">
+          <div class="field">
+            <label for="scale">Export size</label>
+            <select id="scale">
+              <option value="auto">About 1600px</option>
+              <option value="1">1× (one pixel per cell)</option>
+              <option value="4">4×</option>
+              <option value="8">8×</option>
+              <option value="16">16×</option>
+            </select>
+          </div>
+          <div class="row">
+            <button type="button" class="button primary" id="download" disabled>Download PNG</button>
+            <button type="button" class="button" id="copy" disabled>Copy</button>
+          </div>
+        </section>
 
-        <div class="field" id="colours-field">
-          <label for="colours">Colours <output id="colours-out"></output></label>
-          <input type="range" id="colours" min="2" max="24" step="1" value="10" />
-        </div>
-
-        <div class="field">
-          <label for="strength">Dither <output id="strength-out"></output></label>
-          <input type="range" id="strength" min="0" max="100" step="5" value="60" />
-        </div>
-
-        <div class="field">
-          <label for="matrix">Pattern</label>
-          <select id="matrix">
-            <option value="8">Bayer 8×8 (fine)</option>
-            <option value="4">Bayer 4×4 (chunky)</option>
-            <option value="2">Bayer 2×2 (checker)</option>
-            <option value="0">None (flat bands)</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label for="scale">Export size</label>
-          <select id="scale">
-            <option value="auto">About 1600px</option>
-            <option value="1">1× (one pixel per cell)</option>
-            <option value="4">4×</option>
-            <option value="8">8×</option>
-            <option value="16">16×</option>
-          </select>
-        </div>
-
-        <div class="row">
-          <button type="button" class="button primary" id="download" disabled>Download PNG</button>
-          <button type="button" class="button" id="copy" disabled>Copy</button>
-          <button type="button" class="button" id="compare" disabled aria-pressed="false">Compare</button>
-        </div>
-        <p class="status" id="status" role="status" aria-live="polite"></p>
-
-        <p class="foot">
-          Made by <a href="https://roshanprasad.design">Roshan Prasad</a>. Open source,
-          <a href="https://github.com/roshanprasadt/pixel-dither/blob/main/LICENSE">MIT</a>.
-        </p>
+        <!-- Pinned to the foot of the panel. -->
+        <footer class="foot">
+          <p>
+            Made by <a href="https://roshanprasad.design" target="_blank" rel="noopener noreferrer">Roshan Prasad<span class="sr-only"> (opens in a new tab)</span></a>
+            <span aria-hidden="true">·</span>
+            <a href="https://github.com/roshanprasadt/pixel-dither/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">MIT<span class="sr-only"> (opens in a new tab)</span></a>
+          </p>
+          <a class="foot-link" href="https://github.com/roshanprasadt/pixel-dither" target="_blank" rel="noopener noreferrer">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>GitHub<span class="sr-only"> (opens in a new tab)</span></a>
+        </footer>
       </aside>
     </main>
+
+    <!-- One toast for every outcome. Always in the page, so screen readers
+         announce each new message; shown and hidden by data-state. -->
+    <div class="toast" id="toast" role="status" aria-live="polite" data-state="hidden">
+      <span class="toast-icon" aria-hidden="true"></span>
+      <span class="toast-body">
+        <span class="toast-title" id="toast-title"></span>
+        <span class="toast-detail" id="toast-detail"></span>
+      </span>
+    </div>
+
+    <section class="about" id="about" aria-labelledby="about-title">
+      <div class="about-inner">
+        <p class="eyebrow">Pixel Dither</p>
+        <h2 id="about-title" class="about-title">Any image, as dithered pixel art. Right in your browser.</h2>
+        <p class="about-lead">
+          Big square pixels, a handful of colours taken from the picture itself, and the regular dot
+          patterns of classic pixel art where its gradients used to be.
+        </p>
+
+        <ul class="examples" id="examples" aria-label="Examples"></ul>
+
+        <ul class="points">
+          <li>
+            <h3>Private</h3>
+            <p>Your image never leaves your device. There is no server; everything happens in this page.</p>
+          </li>
+          <li>
+            <h3>Works offline</h3>
+            <p>Install it from your browser and it opens like an app, with or without a connection.</p>
+          </li>
+          <li>
+            <h3>Open source</h3>
+            <p>
+              Free under the MIT licence. Read it, fork it or use it as a library, on
+              <a href="https://github.com/roshanprasadt/pixel-dither" target="_blank" rel="noopener noreferrer">GitHub<span class="sr-only"> (opens in a new tab)</span></a>.
+            </p>
+          </li>
+        </ul>
+
+        <h2 class="about-subtitle">How it works</h2>
+        <ol class="steps">
+          <li>
+            <div class="step-visual" id="step-shrink" aria-hidden="true"></div>
+            <h3><span class="step-number">1</span> Shrink</h3>
+            <p>The picture is scaled down to a grid of big pixels, averaging detail rather than skipping it.</p>
+          </li>
+          <li>
+            <div class="step-visual swatches" id="step-palette" aria-hidden="true"></div>
+            <h3><span class="step-number">2</span> Find the palette</h3>
+            <p>Clustering finds the few colours that best represent the picture, so the result keeps its mood.</p>
+          </li>
+          <li>
+            <div class="step-visual" id="step-dither" aria-hidden="true"></div>
+            <h3><span class="step-number">3</span> Dither</h3>
+            <p>
+              Each pixel is nudged by a Bayer pattern before taking its nearest colour, turning smooth
+              gradients into checkerboards and dot fields.
+            </p>
+          </li>
+        </ol>
+
+        <footer class="about-foot">
+          <p>
+            Made by <a href="https://roshanprasad.design" target="_blank" rel="noopener noreferrer">Roshan Prasad<span class="sr-only"> (opens in a new tab)</span></a>, a product designer.
+            <a href="https://github.com/roshanprasadt/pixel-dither" target="_blank" rel="noopener noreferrer">Source on GitHub<span class="sr-only"> (opens in a new tab)</span></a>.
+          </p>
+          <a class="link" href="#stage">Back to the tool ↑</a>
+        </footer>
+      </div>
+    </section>
   </body>
 </html>
