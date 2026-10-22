@@ -84,6 +84,27 @@ a:hover { color: var(--fg); }
   overflow: hidden;
 }
 .stage.dragging { border-color: var(--accent); }
+
+/* The drop zone at the top of the panel: dashed, quiet, with the file
+   picker as its call to action; it lights up while a file is dragged. */
+.dropzone {
+  display: grid; justify-items: center; gap: 2px; padding: 16px 14px;
+  text-align: center; border: 1px dashed var(--line-strong); border-radius: 12px;
+  background: var(--inset);
+  transition: border-color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.dropzone:hover, .dropzone.dragging { border-color: #55555f; }
+.dropzone.dragging { border-color: var(--accent); background: rgb(125 211 252 / 0.06); }
+.dropzone-icon { width: 20px; height: 20px; margin-bottom: 4px; color: var(--muted); }
+.dropzone-title { margin: 0; font-size: 14px; font-weight: 500; color: var(--fg); }
+.dropzone-cta { margin-top: 12px; }
+/* On a short laptop screen the icon gives way, so the panel still fits
+   without scrolling, Download and the footer in view. */
+@media (min-width: 900px) and (max-height: 860px) {
+  .dropzone-icon { display: none; }
+  .dropzone { padding: 12px 14px; }
+}
+
 /* Sized and painted by app.js at the screen's own resolution. */
 .stage canvas { position: absolute; top: 16px; left: 16px; }
 /* A sample fills the frame; it is cropped, never letterboxed. */
@@ -123,6 +144,22 @@ a:hover { color: var(--fg); }
   border: 1px solid var(--line-strong); border-radius: 14px;
   font-size: 13px; color: var(--fg-2); text-align: left;
 }
+/* A visitor's own picture, in the drop zone: its name, then Clear as an
+   outlined pill, on the prompt's line. */
+.own { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; }
+.own-name {
+  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 14px; font-weight: 500; color: var(--fg);
+}
+.clear {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px 0 9px;
+  font: 500 12px var(--font); color: var(--fg); background: transparent;
+  border: 1px solid var(--line-strong); border-radius: 999px; cursor: pointer;
+  transition: background-color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.clear svg { width: 12px; height: 12px; }
+.clear:hover { background: var(--panel); border-color: #55555f; }
+
 /* The sample picker: four thumbnails, the showing one ringed. */
 .picker { display: flex; gap: 6px; }
 .picker button {
@@ -153,7 +190,7 @@ a:hover { color: var(--fg); }
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 2px 20px 0; overflow: auto;
 }
-.group { display: grid; gap: 14px; padding: 18px 0; }
+.group { display: grid; gap: 12px; padding: 16px 0; }
 .group + .group { border-top: 1px solid var(--line); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 .button {

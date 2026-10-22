@@ -20,7 +20,6 @@ const els = {
   original: $("original"),
   empty: $("empty"),
   file: $("file"),
-  sample: $("sample"),
   swatches: $("swatches"),
   cells: $("cells"),
   mode: $("mode"),
@@ -222,13 +221,19 @@ function updateLabels() {
   els.coloursField.hidden = els.mode.value !== "auto";
 }
 
-/** Which sample is showing, if one is. */
+/** Which sample is showing, if one is; and the last one shown. */
 let sampleId = null;
+let lastSample = "jellyfish";
 
 function use(image, name, sample = null) {
   source = image;
   sourceName = name;
   sampleId = name === "sample" ? sample : null;
+  if (sampleId) lastSample = sampleId;
+  // Their picture takes the drop zone's prompt line: its name and Clear.
+  $("own").hidden = name === "sample";
+  $("drop-title").hidden = name !== "sample";
+  $("own-name").textContent = name;
   for (const button of $("picker").children)
     button.setAttribute("aria-pressed", String(button.dataset.sample === sampleId));
   els.empty.hidden = true;
@@ -314,7 +319,12 @@ function openSample(id = "jellyfish", { keepSettings = false } = {}) {
     () => toast("That sample could not load", "Check your connection and try again.", "error"),
   );
 }
-els.sample.addEventListener("click", () => openSample(sampleId ?? "jellyfish"));
+
+// Clearing a visitor's picture goes back to the sample they last saw.
+$("clear").addEventListener("click", () => {
+  openSample(lastSample);
+  toast("Image cleared", "Drop or choose another any time.");
+});
 
 // The sample picker on the picture: a thumbnail per sample, the one showing
 // pressed. Thumbnails are the sample files themselves, loaded lazily.
@@ -345,14 +355,19 @@ document.addEventListener("dragover", (event) => {
   if (![...(event.dataTransfer?.types || [])].includes("Files")) return;
   event.preventDefault();
   els.stage.classList.add("dragging");
+  $("dropzone").classList.add("dragging");
 });
 document.addEventListener("dragleave", (event) => {
-  if (!event.relatedTarget) els.stage.classList.remove("dragging");
+  if (!event.relatedTarget) {
+    els.stage.classList.remove("dragging");
+    $("dropzone").classList.remove("dragging");
+  }
 });
 document.addEventListener("drop", (event) => {
   if (!event.dataTransfer?.files?.length) return;
   event.preventDefault();
   els.stage.classList.remove("dragging");
+  $("dropzone").classList.remove("dragging");
   open(event.dataTransfer.files[0]);
   window.scrollTo({ top: 0 });
 });
