@@ -88,7 +88,7 @@ a:hover { color: var(--fg); }
 /* The drop zone at the top of the panel: dashed, quiet, with the file
    picker as its call to action; it lights up while a file is dragged. */
 .dropzone {
-  display: grid; justify-items: center; gap: 2px; padding: 16px 14px;
+  display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 2px; padding: 16px 14px;
   text-align: center; border: 1px dashed var(--line-strong); border-radius: 12px;
   background: var(--inset);
   transition: border-color var(--fast) var(--ease), background-color var(--fast) var(--ease);
@@ -144,21 +144,14 @@ a:hover { color: var(--fg); }
   border: 1px solid var(--line-strong); border-radius: 14px;
   font-size: 13px; color: var(--fg-2); text-align: left;
 }
-/* A visitor's own picture, in the drop zone: its name, then Clear as an
-   outlined pill, on the prompt's line. */
-.own { display: flex; align-items: center; justify-content: center; gap: 10px; max-width: 100%; }
+/* A visitor's own picture, in the drop zone: its name, truncated on one
+   line (a long file name must never widen the panel), then Clear image. */
 .own-name {
-  min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  margin: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   font-size: 14px; font-weight: 500; color: var(--fg);
 }
-.clear {
-  flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px 0 9px;
-  font: 500 12px var(--font); color: var(--fg); background: transparent;
-  border: 1px solid var(--line-strong); border-radius: 999px; cursor: pointer;
-  transition: background-color var(--fast) var(--ease), border-color var(--fast) var(--ease);
-}
+.clear { gap: 6px; }
 .clear svg { width: 12px; height: 12px; }
-.clear:hover { background: var(--panel); border-color: #55555f; }
 
 /* The sample picker: four thumbnails, the showing one ringed. */
 .picker { display: flex; gap: 6px; }
@@ -190,7 +183,7 @@ a:hover { color: var(--fg); }
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 2px 20px 0; overflow: auto;
 }
-.group { display: grid; gap: 12px; padding: 16px 0; }
+.group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 0; }
 .group + .group { border-top: 1px solid var(--line); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 .button {

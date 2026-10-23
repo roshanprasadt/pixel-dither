@@ -230,9 +230,13 @@ function use(image, name, sample = null) {
   sourceName = name;
   sampleId = name === "sample" ? sample : null;
   if (sampleId) lastSample = sampleId;
-  // Their picture takes the drop zone's prompt line: its name and Clear.
-  $("own").hidden = name === "sample";
-  $("drop-title").hidden = name !== "sample";
+  // Their picture takes the drop zone: its name on the prompt's line, and
+  // Clear image in place of Choose image.
+  const own = name !== "sample";
+  $("own-name").hidden = !own;
+  $("clear").hidden = !own;
+  $("drop-title").hidden = own;
+  $("choose").hidden = own;
   $("own-name").textContent = name;
   for (const button of $("picker").children)
     button.setAttribute("aria-pressed", String(button.dataset.sample === sampleId));

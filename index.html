@@ -81,16 +81,15 @@
               <path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21" />
             </svg>
             <p class="dropzone-title" id="drop-title">Drop an image here</p>
-            <!-- A visitor's own picture, in place of the prompt: its name,
-                 and a way to clear it and go back to the samples. -->
-            <div class="own" id="own" hidden>
-              <span class="own-name" id="own-name"></span>
-              <button type="button" class="clear" id="clear">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
-                Clear image
-              </button>
-            </div>
-            <label class="button primary dropzone-cta">
+            <!-- A visitor's own picture: its name takes the prompt's line and
+                 Clear image takes the button's place. A drop or a paste still
+                 replaces it. -->
+            <p class="own-name" id="own-name" hidden></p>
+            <button type="button" class="button dropzone-cta clear" id="clear" hidden>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+              Clear image
+            </button>
+            <label class="button primary dropzone-cta" id="choose">
               Choose image
               <input type="file" id="file" accept="image/*" class="sr-only" />
             </label>
