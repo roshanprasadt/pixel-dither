@@ -164,6 +164,60 @@ a:hover { color: var(--fg); }
 .picker button:hover { opacity: 1; }
 .picker button[aria-pressed="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--bg), 0 0 0 3.5px var(--fg); }
 .picker img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* First visit. Step one: a tip above the samples, its point on them, and
+   the thumbnails lighting up one after another, three times over. */
+.chip { position: relative; }
+.tip {
+  position: absolute; left: 0; bottom: calc(100% + 10px); z-index: 2;
+  display: flex; align-items: center; gap: 8px; padding: 6px 6px 6px 12px; white-space: nowrap;
+  background: rgb(24 24 28 / 0.92); backdrop-filter: blur(16px);
+  border: 1px solid var(--line-strong); border-radius: 10px;
+  box-shadow: 0 12px 32px -8px rgb(0 0 0 / 0.6);
+  font-size: 13px; color: var(--fg);
+  animation: tip-in 300ms var(--ease) both;
+}
+/* The point, centred on the picker (four 34px thumbnails, 6px apart). */
+.tip::after {
+  content: ""; position: absolute; left: 77px; bottom: -5px; width: 8px; height: 8px;
+  background: inherit; border: inherit; border-width: 0 1px 1px 0; rotate: 45deg;
+}
+@keyframes tip-in { from { opacity: 0; translate: 0 8px; } }
+.tip-close {
+  display: grid; place-items: center; width: 24px; height: 24px; padding: 0;
+  color: var(--muted); background: none; border: 0; border-radius: 6px; cursor: pointer;
+  transition: color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.tip-close:hover { color: var(--fg); background: var(--inset); }
+.tip-close svg { width: 12px; height: 12px; }
+.chip[data-guide] .picker button:not([aria-pressed="true"]) { animation: guide-light 2.4s var(--ease) 3; }
+.chip[data-guide] .picker button:nth-child(2) { animation-delay: 150ms; }
+.chip[data-guide] .picker button:nth-child(3) { animation-delay: 300ms; }
+.chip[data-guide] .picker button:nth-child(4) { animation-delay: 450ms; }
+@keyframes guide-light {
+  0%, 40%, 100% { opacity: 0.6; translate: 0 0; }
+  15% { opacity: 1; translate: 0 -2px; }
+}
+
+/* Step two: the drop zone glows, solid edged, its title the invitation. */
+.dropzone { position: relative; }
+.dropzone[data-guide] { border-style: solid; border-color: var(--accent); }
+.dropzone[data-guide]::after {
+  content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 4px rgb(125 211 252 / 0.14), 0 0 28px rgb(125 211 252 / 0.2);
+  opacity: 0.35; animation: guide-glow 1.2s ease-in-out 6 alternate both;
+}
+@keyframes guide-glow { from { opacity: 0.35; } to { opacity: 1; } }
+/* Its tip hangs under the zone, centred on Choose image, point up. It floats
+   over the first slider for the moment it is there, rather than pushing
+   the panel down. */
+.tip-own { left: 50%; bottom: auto; top: calc(100% + 10px); animation-name: tip-in-below; }
+.tip-own::after { left: calc(50% - 4px); bottom: auto; top: -5px; border-width: 1px 0 0 1px; }
+@keyframes tip-in-below { from { opacity: 0; translate: -50% -8px; } to { translate: -50% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .tip-own { translate: -50% 0; }
+  .tip, .chip[data-guide] .picker button, .dropzone[data-guide]::after { animation: none !important; }
+}
+
 /* "Choose image": the Try it pill, filled as the primary action. */
 .chip-action {
   display: inline-flex; align-items: center; height: 30px; padding: 0 14px;
@@ -177,41 +231,110 @@ a:hover { color: var(--fg); }
 @media (max-width: 900px) { .chip-text { display: none; } }
 @media (max-width: 640px) { .chip-action { display: none; } }
 
-/* The panel: groups divided by hairlines, the footer pinned to its foot. */
+/* The panel, after the tool sidebars of Linear and Vercel: a quiet title
+   per group, a label and its value on one line, 32px controls, thin custom
+   sliders and segmented choices; hairlines between groups, the footer
+   pinned to its foot. */
 .panel {
   display: flex; flex-direction: column;
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 2px 20px 0; overflow: auto;
+  padding: 2px 16px 0; overflow: auto;
 }
-.group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 0; }
+.group { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 14px 0; }
 .group + .group { border-top: 1px solid var(--line); }
+.group-title { margin: 0 0 -2px; font-size: 12px; font-weight: 500; color: var(--muted); }
 .row { display: flex; flex-wrap: wrap; gap: 8px; }
 .button {
-  display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 12px;
   font: 500 13px var(--font); color: var(--fg); background: var(--inset);
   border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
-  transition: border-color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  transition: border-color var(--fast) var(--ease), background-color var(--fast) var(--ease), opacity var(--fast) var(--ease);
 }
+.button svg { width: 14px; height: 14px; flex: none; }
 .button:hover { border-color: var(--line-strong); }
 .button:disabled { opacity: 0.45; cursor: default; }
-.button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.button.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); box-shadow: none; }
+.button.primary:hover:not(:disabled) { opacity: 0.9; }
+.button.grow { flex: 1; }
 .button[aria-pressed="true"] { border-color: var(--accent); }
 label.button:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.palette { display: flex; height: 8px; margin-top: -4px; border-radius: 999px; overflow: hidden; background: var(--inset); }
+.palette { display: flex; height: 6px; margin-top: -4px; border-radius: 999px; overflow: hidden; background: var(--inset); }
 .palette span { flex: 1; }
 
 .field { display: grid; gap: 8px; }
-.field label {
-  display: flex; justify-content: space-between;
-  font: 11px/1.4 var(--mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+/* A label and a select on one row, the select taking the rest. */
+.field.inline { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 16px; }
+.field-label {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 13px; color: var(--fg-2);
 }
-.field output { font-variant-numeric: tabular-nums; color: var(--fg-2); }
-input[type="range"] { width: 100%; accent-color: var(--fg); }
-select {
-  height: 36px; padding: 0 10px; font: inherit; color: var(--fg);
+.field output { font: 12px var(--mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+
+/* Sliders: a 4px track filled up to the thumb (--p, 0 to 1, from app.js;
+   measured from the thumb's centre, which travels 7px in from each end),
+   and a 14px thumb that swells a little while held. */
+input[type="range"] {
+  --p: 0.5;
+  appearance: none; width: 100%; height: 16px; margin: 0; background: none; cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; border-radius: 999px;
+  background: linear-gradient(var(--fg-2), var(--fg-2)) 0 0 / calc(7px + (100% - 14px) * var(--p)) 100% no-repeat, var(--line-strong);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%;
+  background: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+  transition: scale var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 999px; background: var(--line-strong); }
+input[type="range"]::-moz-range-progress { height: 4px; border-radius: 999px; background: var(--fg-2); }
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; border: 0; border-radius: 50%;
+  background: var(--fg); box-shadow: 0 1px 3px rgb(0 0 0 / 0.5);
+  transition: scale var(--fast) var(--ease), box-shadow var(--fast) var(--ease);
+}
+input[type="range"]:active::-webkit-slider-thumb { scale: 1.15; }
+input[type="range"]:active::-moz-range-thumb { scale: 1.15; }
+/* Focus rings the thumb, not the whole row. */
+input[type="range"]:focus-visible { outline: none; }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent); }
+input[type="range"]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px var(--panel), 0 0 0 4px var(--accent); }
+
+/* Segmented: a recessed track, the chosen segment raised out of it. Real
+   radios, so arrow keys move the choice; each fills its label, unseen. */
+.seg {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 2px; padding: 2px;
   background: var(--inset); border: 1px solid var(--line); border-radius: 8px;
 }
+.seg label {
+  position: relative; display: grid; place-items: center; height: 26px; border-radius: 6px;
+  font: 500 12px var(--font); font-variant-numeric: tabular-nums; color: var(--muted); cursor: pointer;
+  transition: color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.seg label:hover { color: var(--fg); }
+.seg input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.seg label:has(:checked) {
+  color: var(--fg); background: var(--line);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+.seg label:has(:focus-visible) { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Its own chevron, 12px in: the browser's sat about 6px from the right
+   edge against 10px of text inset on the left, and read as off centre. */
+select {
+  height: 32px; padding: 0 34px 0 12px; font: 13px var(--font); color: var(--fg); cursor: pointer;
+  appearance: none; border: 1px solid var(--line); border-radius: 8px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.04);
+  background: var(--inset) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right 12px center / 14px no-repeat;
+  transition: border-color var(--fast) var(--ease);
+}
+select:hover { border-color: var(--line-strong); }
+/* A select keeps focus after a click, so its ring shows often: drawn on
+   its own edge, it follows the corner, where the page's ring 2px out sat
+   apart from it as a second, rounder outline. */
+select:focus-visible { outline-offset: -1px; }
 .foot {
   margin-top: auto; padding: 14px 0; border-top: 1px solid var(--line);
   display: flex; align-items: center; justify-content: space-between; gap: 12px;

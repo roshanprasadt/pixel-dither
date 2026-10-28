@@ -26,14 +26,30 @@ const els = {
   colours: $("colours"),
   coloursField: $("colours-field"),
   strength: $("strength"),
-  matrix: $("matrix"),
-  scale: $("scale"),
+  matrix: radioValue($("matrix")),
+  scale: radioValue($("scale")),
   download: $("download"),
   copy: $("copy"),
   views: [...document.querySelectorAll("[data-view]")],
   toast: $("toast"),
   install: $("install"),
 };
+
+/**
+ * A segmented control is a row of radios; this gives its group a `value`
+ * to read and set, like the select it replaced, so the rest of the page
+ * treats both alike. The radios' input events bubble up to the group.
+ */
+function radioValue(group) {
+  Object.defineProperty(group, "value", {
+    get: () => group.querySelector("input:checked")?.value ?? "",
+    set: (value) => {
+      const radio = group.querySelector(`input[value="${CSS.escape(String(value))}"]`);
+      if (radio) radio.checked = true;
+    },
+  });
+  return group;
+}
 
 const SETTINGS_KEY = "pixel-dither:settings";
 const CONTROLS = ["cells", "mode", "colours", "strength", "matrix", "scale"];
@@ -219,7 +235,59 @@ function updateLabels() {
   $("colours-out").textContent = els.colours.value;
   $("strength-out").textContent = `${els.strength.value}%`;
   els.coloursField.hidden = els.mode.value !== "auto";
+  // Each slider's track fills up to its thumb, from a 0 to 1 fraction.
+  for (const range of [els.cells, els.strength, els.colours])
+    range.style.setProperty("--p", (range.value - range.min) / (range.max - range.min));
 }
+
+/*
+ * First visit: two tips, one after the other, never in the way. Step one
+ * points at the samples, which light up in turn. Once someone has picked
+ * one and looked at it for a moment, step two lights the drop zone and the
+ * same tip, under Choose image, invites their own. Using their own picture, a close button
+ * or Escape ends it; reaching step two counts as having been shown, so it
+ * never comes back. Someone with saved settings has used it already.
+ */
+const GUIDE_KEY = "pixel-dither:guided";
+/** "samples", "own" or "off". */
+let guide = "off";
+let guideTimer = 0;
+/** How long a picked sample is looked at before the next step. */
+const GUIDE_LOOK = 2500;
+
+function guided() {
+  try {
+    return localStorage.getItem(GUIDE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function setGuide(step) {
+  guide = step;
+  clearTimeout(guideTimer);
+  $("tip-samples").hidden = step !== "samples";
+  $("chip").toggleAttribute("data-guide", step === "samples");
+  $("dropzone").toggleAttribute("data-guide", step === "own");
+  $("tip-own").hidden = step !== "own";
+  if (step !== "samples")
+    try {
+      localStorage.setItem(GUIDE_KEY, "1");
+    } catch {}
+}
+
+/** Each pick restarts the look, so browsing several samples is not cut short. */
+function guidePicked() {
+  if (guide !== "samples") return;
+  clearTimeout(guideTimer);
+  guideTimer = setTimeout(() => setGuide("own"), GUIDE_LOOK);
+}
+
+for (const button of document.querySelectorAll("[data-guide-close]"))
+  button.addEventListener("click", () => setGuide("off"));
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && guide !== "off") setGuide("off");
+});
 
 /** Which sample is showing, if one is; and the last one shown. */
 let sampleId = null;
@@ -244,6 +312,8 @@ function use(image, name, sample = null) {
   // While the sample shows, a chip on the picture says so and offers the
   // next step; it goes once someone uses their own picture.
   $("chip").hidden = name !== "sample";
+  // Their own picture is what the guide was leading to.
+  if (own && guide !== "off") setGuide("off");
   // A sample fills the frame edge to edge, cropped to fit; a visitor's own
   // picture is always shown whole.
   els.stage.classList.toggle("fill", name === "sample");
@@ -345,7 +415,10 @@ for (const sample of SAMPLES) {
   thumb.loading = "lazy";
   thumb.decoding = "async";
   button.append(thumb);
-  button.addEventListener("click", () => openSample(sample.id));
+  button.addEventListener("click", () => {
+    openSample(sample.id);
+    guidePicked();
+  });
   $("picker").append(button);
 }
 for (const key of CONTROLS)
@@ -436,7 +509,10 @@ updateLabels();
 // First visit: open on the sample, already converted, so the first thing a
 // visitor sees is the result and every control answers at once. The chip
 // on the picture says it is a sample and how to use their own.
-openSample("jellyfish", { keepSettings: hasSaved });
+openSample("jellyfish", { keepSettings: hasSaved }).then(() => {
+  // A beat after the picture appears, so it is seen before the tip is.
+  if (!hasSaved && !guided()) setTimeout(() => sampleId && guide === "off" && setGuide("samples"), 1200);
+});
 
 /*
  * The section below the tool: examples and how it works, drawn by the same
@@ -496,6 +572,7 @@ function fillExample(item, sample, picture) {
     loaded.set(sample.id, Promise.resolve(picture));
     applySettings(sample);
     use(picture, "sample", sample.id);
+    guidePicked();
     const still = matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: still ? "auto" : "smooth" });
   });
